@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Copy your site files into the web root
+# Copy your site files in
 COPY . /var/www/html/
 
 # Enable common extensions (add/remove as your app needs)
