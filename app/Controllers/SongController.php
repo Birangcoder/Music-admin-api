@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AdminApi\Controllers;
@@ -15,8 +16,17 @@ final class SongController extends BaseController
 
     private const INT_FIELDS = ['duration_seconds', 'is_explicit', 'is_active'];
     private const FIELDS = [
-        'title', 'slug', 'description', 'lyrics', 'audio_url', 'cover_url',
-        'duration_seconds', 'language', 'release_date', 'is_explicit', 'is_active',
+        'title',
+        'slug',
+        'description',
+        'lyrics',
+        'audio_url',
+        'cover_url',
+        'duration_seconds',
+        'language',
+        'release_date',
+        'is_explicit',
+        'is_active',
     ];
 
     public function __construct()
@@ -91,58 +101,66 @@ final class SongController extends BaseController
 
     public function show(int $id): void
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM songs WHERE id=? AND deleted_at IS NULL LIMIT 1'
-        );
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
+        try {
+            $stmt = $this->db->prepare(
+                'SELECT * FROM songs WHERE id=? AND deleted_at IS NULL LIMIT 1'
+            );
+            if (!$stmt) {
+                throw new \RuntimeException('DB prepare failed: ' . $this->db->error);
+            }
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
 
-        $song = $stmt->get_result()->fetch_assoc();
+            $song = $stmt->get_result()->fetch_assoc();
 
-        if (!$song) {
-            Response::error('Song not found.', 404);
-        }
+            if (!$song) {
+                Response::error('Song not found.', 404);
+                return;
+            }
 
-        $artist = $this->db->prepare(
-            "SELECT a.id, a.name, a.slug, sa.role
+            $artist = $this->db->prepare(
+                "SELECT a.id, a.name, a.slug, sa.role
              FROM song_artists sa
              INNER JOIN artists a ON a.id=sa.artist_id
              WHERE sa.song_id=? AND a.deleted_at IS NULL
              ORDER BY a.name"
-        );
-        $artist->bind_param('i', $id);
-        $artist->execute();
+            );
+            $artist->bind_param('i', $id);
+            $artist->execute();
 
-        $genre = $this->db->prepare(
-            "SELECT g.id, g.name, g.slug
+            $genre = $this->db->prepare(
+                "SELECT g.id, g.name, g.slug
              FROM song_genres sg
              INNER JOIN genres g ON g.id=sg.genre_id
-             WHERE sg.song_id=?
-             ORDER BY g.name"
-        );
-        $genre->bind_param('i', $id);
-        $genre->execute();
+             WHERE sg.song_id=? ORDER BY g.name"
+            );
+            $genre->bind_param('i', $id);
+            $genre->execute();
 
-        $album = $this->db->prepare(
-            "SELECT
-                al.id,
-                al.title,
-                al.slug,
-                sa.track_number,
-                sa.disc_number
+            $album = $this->db->prepare(
+                "SELECT al.id, al.title, al.slug, sa.track_number, sa.disc_number
              FROM song_albums sa
              INNER JOIN albums al ON al.id=sa.album_id
              WHERE sa.song_id=? AND al.deleted_at IS NULL
              ORDER BY sa.disc_number, sa.track_number"
-        );
-        $album->bind_param('i', $id);
-        $album->execute();
+            );
+            $album->bind_param('i', $id);
+            $album->execute();
 
-        $song['artists'] = $artist->get_result()->fetch_all(MYSQLI_ASSOC);
-        $song['genres'] = $genre->get_result()->fetch_all(MYSQLI_ASSOC);
-        $song['albums'] = $album->get_result()->fetch_all(MYSQLI_ASSOC);
+            $song['artists'] = $artist->get_result()->fetch_all(MYSQLI_ASSOC);
+            $song['genres']  = $genre->get_result()->fetch_all(MYSQLI_ASSOC);
+            $song['albums']  = $album->get_result()->fetch_all(MYSQLI_ASSOC);
 
-        Response::success($song);
+            Response::success($song);
+        } catch (\Throwable $e) {
+            error_log((string) $e);
+            Response::error(
+                Env::get('APP_ENV', 'production') === 'local'
+                    ? $e->getMessage()
+                    : 'Unable to load song (server error).',
+                500
+            );
+        }
     }
 
     public function create(): void

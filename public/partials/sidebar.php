@@ -1,0 +1,3 @@
+<aside class="sidebar"><div class="brand"><span class="brand-mark">♪</span><div><strong>Music Admin</strong><small>MusicAPI-v2</small></div></div>
+<nav><a href="dashboard.php">⌂ <span>Dashboard</span></a><a href="songs.php">♫ <span>Songs</span></a><a href="resources.php?type=albums">▣ <span>Albums</span></a><a href="resources.php?type=artists">♙ <span>Artists</span></a><a href="resources.php?type=genres">◈ <span>Genres</span></a><a href="resources.php?type=languages">文 <span>Languages</span></a></nav>
+<div class="side-bottom"><span><?=h($_SESSION['admin_username']??'admin')?></span><a href="logout.php">↪ <span>Logout</span></a></div></aside>
