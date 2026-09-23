@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace AdminApi\Core;
@@ -24,16 +25,14 @@ final class Env
             $key = trim($key);
             $value = trim($value);
 
-            if (
-                strlen($value) >= 2 &&
-                (($value[0] === '"' && $value[-1] === '"') ||
-                 ($value[0] === "'" && $value[-1] === "'"))
-            ) {
+            if (strlen($value) >= 2 && (($value[0] === '"' && $value[-1] === '"') || ($value[0] === "'" && $value[-1] === "'"))) {
                 $value = substr($value, 1, -1);
             }
 
-            $_ENV[$key] = $value;
-            putenv($key . '=' . $value);
+            if (getenv($key) === false) {
+                putenv($key . '=' . $value);
+            }
+            $_ENV[$key] ??= $value;
         }
 
         self::$loaded = true;
@@ -41,9 +40,13 @@ final class Env
 
     public static function get(string $key, ?string $default = null): ?string
     {
-        $value = $_ENV[$key] ?? getenv($key);
+        $value = getenv($key);
+        if ($value !== false) {
+            return (string) $value;
+        }
 
-        return ($value === false || $value === null) ? $default : (string) $value;
+        $value = $_ENV[$key] ?? null;
+        return $value === null ? $default : (string) $value;
     }
 
     public static function bool(string $key, bool $default = false): bool

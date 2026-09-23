@@ -1,5 +1,6 @@
 .git
 .env
+config/secrets.php
 vendor
 node_modules
 npm-debug.log

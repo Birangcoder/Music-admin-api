@@ -58,7 +58,7 @@ final class Auth
             return false;
         }
 
-        $secret = (string) Env::get('ADMIN_TOKEN_SECRET', '');
+        $secret = (string) Env::get('ADMIN_TOKEN_SECRET', ADMIN_TOKEN_SECRET);
 
         if (strlen($secret) < 32) {
             return false;
@@ -95,11 +95,11 @@ final class Auth
             'sub' => $username,
             'role' => 'admin',
             'iat' => $now,
-            'exp' => $now + Env::int('TOKEN_TTL', 86400),
+            'exp' => $now + Env::int('TOKEN_TTL', TOKEN_TTL),
         ], JSON_UNESCAPED_SLASHES));
 
         $signature = self::base64UrlEncode(
-            hash_hmac('sha256', $header . '.' . $payload, (string) Env::get('ADMIN_TOKEN_SECRET', ''), true)
+            hash_hmac('sha256', $header . '.' . $payload, (string) Env::get('ADMIN_TOKEN_SECRET', ADMIN_TOKEN_SECRET), true)
         );
 
         return $header . '.' . $payload . '.' . $signature;

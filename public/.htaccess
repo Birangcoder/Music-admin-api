@@ -1,9 +1,0 @@
-RewriteEngine On
-
-# Never rewrite real files/directories.
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
-
-# Everything else goes to the front controller.
-RewriteRule ^ index.php [QSA,L]

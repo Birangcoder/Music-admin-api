@@ -16,10 +16,10 @@ final class AuthController
 
         $username = trim((string) ($data['username'] ?? ''));
         $password = (string) ($data['password'] ?? '');
-        $configuredUsername = (string) Env::get('ADMIN_USERNAME', 'admin');
-        $hash = trim((string) Env::get('ADMIN_PASSWORD_HASH', ''));
-        $legacyPassword = (string) Env::get('ADMIN_PASSWORD', '');
-        $secret = trim((string) Env::get('ADMIN_TOKEN_SECRET', ''));
+        $configuredUsername = (string) Env::get('ADMIN_USERNAME', ADMIN_USERNAME);
+        $hash = trim((string) Env::get('ADMIN_PASSWORD_HASH', ADMIN_PASSWORD_HASH));
+        $legacyPassword = (string) Env::get('ADMIN_PASSWORD', ADMIN_PASSWORD);
+        $secret = trim((string) Env::get('ADMIN_TOKEN_SECRET', ADMIN_TOKEN_SECRET));
 
         if ($hash === '' && $legacyPassword === '') {
             Response::error('Admin authentication is not configured.', 503);

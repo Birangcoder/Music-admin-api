@@ -1,9 +1,16 @@
-FROM php:8.2-apache
+FROM php:8.3-cli
 
-# Copy your site files in
-COPY . /var/www/html/
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    && docker-php-ext-install mysqli pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Enable common extensions (add/remove as your app needs)
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+WORKDIR /var/www
 
-EXPOSE 80
+COPY . .
+
+EXPOSE 10000
+
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t /var/www"]

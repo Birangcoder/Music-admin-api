@@ -1,9 +1,6 @@
 RewriteEngine On
 
-# Keep direct /public/... URLs working.
-RewriteRule ^public(?:/|$) - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-# Route /MusicAdminAPI/... through the public front controller.
-# Do not use -d/-f here: /MusicAdminAPI/ itself is a real directory,
-# but it still needs to reach public/index.php.
-RewriteRule ^(.*)$ public/$1 [QSA,L]
+RewriteRule ^ index.php [QSA,L]

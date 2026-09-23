@@ -3,3 +3,7 @@
 /.idea/
 .vscode/
 *.log
+
+# Local environment/secrets
+.env
+config/secrets.php

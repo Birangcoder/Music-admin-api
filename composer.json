@@ -1,8 +1,0 @@
-{
-  "name": "birang/music-admin-api",
-  "description": "Private CRUD API for MusicAPI-v2 administration",
-  "type": "project",
-  "require": {
-    "php": ">=8.1"
-  }
-}
