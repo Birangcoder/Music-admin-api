@@ -80,6 +80,27 @@ APP_URL=https://your-admin-api.onrender.com
 CORS_ORIGIN=https://your-admin-panel.example.com
 ```
 
+### Cloudinary
+
+Keep these credentials only in the Admin API/Render environment:
+
+```env
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+```
+
+The API uses the existing Cloudinary Media Library folders:
+
+```text
+albums  -> album-cover
+artists -> artist-image
+cover   -> song-cover
+music   -> audio
+```
+
+Do not add these secrets to the admin panel or frontend JavaScript.
+
 If the admin panel is only used locally, `CORS_ORIGIN=http://localhost` can be used.
 
 ## Local WAMP
@@ -130,6 +151,10 @@ ADMIN_TOKEN_SECRET=...
 TOKEN_TTL=86400
 
 CORS_ORIGIN=...
+
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
 ```
 
 Do **not** upload `.env` to GitHub. `.dockerignore` also excludes it from the Docker build context.
@@ -203,3 +228,28 @@ song_albums
 ```
 
 It does not maintain a separate music database or duplicate the MusicAPI-v2 schema.
+
+
+## Cloudinary uploads
+
+The Admin API performs signed Cloudinary uploads. The admin panel only sends the selected file to the API; Cloudinary credentials never reach the browser.
+
+Fixed Media Library folders:
+
+```text
+albums  -> album-cover
+artists -> artist-image
+cover   -> song-cover
+music   -> audio
+```
+
+Authenticated multipart endpoints:
+
+```text
+POST /uploads/album-cover
+POST /uploads/artist-image
+POST /uploads/song-cover
+POST /uploads/audio
+```
+
+Each request uses a multipart field named `file` and returns the Cloudinary `secure_url`. Existing database URLs are not rewritten.

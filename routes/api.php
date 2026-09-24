@@ -8,6 +8,7 @@ use AdminApi\Controllers\DashboardController;
 use AdminApi\Controllers\GenreController;
 use AdminApi\Controllers\LanguageController;
 use AdminApi\Controllers\SongController;
+use AdminApi\Controllers\UploadController;
 use AdminApi\Helpers\Response;
 
 /*
@@ -54,6 +55,15 @@ $router->get('/songs/{id}', [SongController::class, 'show']);
 $router->put('/songs/{id}', [SongController::class, 'update']);
 $router->patch('/songs/{id}', [SongController::class, 'update']);
 $router->delete('/songs/{id}', [SongController::class, 'delete']);
+
+/*
+|--------------------------------------------------------------------------
+| Cloudinary uploads
+|--------------------------------------------------------------------------
+| All uploads are authenticated and handled by the API. The panel never
+| receives or stores the Cloudinary API secret.
+*/
+$router->post('/uploads/{type}', [UploadController::class, 'upload']);
 
 /*
 |--------------------------------------------------------------------------

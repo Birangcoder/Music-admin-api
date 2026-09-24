@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www
 
+COPY docker/php.ini /usr/local/etc/php/conf.d/99-music-admin.ini
 COPY . .
 
 EXPOSE 10000
