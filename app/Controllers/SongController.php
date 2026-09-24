@@ -111,7 +111,10 @@ final class SongController extends BaseController
             $stmt->bind_param('i', $id);
             $stmt->execute();
 
-            $song = $stmt->get_result()->fetch_assoc();
+            $songResult = $stmt->get_result();
+            $song = $songResult->fetch_assoc();
+            $songResult->free();
+            $stmt->close();
 
             if (!$song) {
                 Response::error('Song not found.', 404);
@@ -127,6 +130,10 @@ final class SongController extends BaseController
             );
             $artist->bind_param('i', $id);
             $artist->execute();
+            $artistResult = $artist->get_result();
+            $artists = $artistResult->fetch_all(MYSQLI_ASSOC);
+            $artistResult->free();
+            $artist->close();
 
             $genre = $this->db->prepare(
                 "SELECT g.id, g.name, g.slug
@@ -136,6 +143,10 @@ final class SongController extends BaseController
             );
             $genre->bind_param('i', $id);
             $genre->execute();
+            $genreResult = $genre->get_result();
+            $genres = $genreResult->fetch_all(MYSQLI_ASSOC);
+            $genreResult->free();
+            $genre->close();
 
             $album = $this->db->prepare(
                 "SELECT al.id, al.title, al.slug, sa.track_number, sa.disc_number
@@ -146,10 +157,14 @@ final class SongController extends BaseController
             );
             $album->bind_param('i', $id);
             $album->execute();
+            $albumResult = $album->get_result();
+            $albums = $albumResult->fetch_all(MYSQLI_ASSOC);
+            $albumResult->free();
+            $album->close();
 
-            $song['artists'] = $artist->get_result()->fetch_all(MYSQLI_ASSOC);
-            $song['genres']  = $genre->get_result()->fetch_all(MYSQLI_ASSOC);
-            $song['albums']  = $album->get_result()->fetch_all(MYSQLI_ASSOC);
+            $song['artists'] = $artists;
+            $song['genres']  = $genres;
+            $song['albums']  = $albums;
 
             Response::success($song);
         } catch (\Throwable $e) {
