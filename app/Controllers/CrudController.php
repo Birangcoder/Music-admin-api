@@ -30,6 +30,7 @@ abstract class CrudController extends BaseController
         $page = max(1, Request::int('page', 1));
         $limit = min(100, max(1, Request::int('limit', 25)));
         $search = Request::string('search');
+        $includeTotal = Request::bool(Request::string('include_total', '1'), true);
 
         $where = $this->softDelete ? 'deleted_at IS NULL' : '1=1';
         $params = [];
@@ -41,12 +42,15 @@ abstract class CrudController extends BaseController
             $types .= 's';
         }
 
-        $countStmt = $this->db->prepare("SELECT COUNT(*) AS total FROM {$this->table} WHERE {$where}");
-        if ($params) {
-            $countStmt->bind_param($types, ...$params);
+        $total = null;
+        if ($includeTotal) {
+            $countStmt = $this->db->prepare("SELECT COUNT(*) AS total FROM {$this->table} WHERE {$where}");
+            if ($params) {
+                $countStmt->bind_param($types, ...$params);
+            }
+            $countStmt->execute();
+            $total = (int) $countStmt->get_result()->fetch_assoc()['total'];
         }
-        $countStmt->execute();
-        $total = (int) $countStmt->get_result()->fetch_assoc()['total'];
 
         $offset = ($page - 1) * $limit;
         $queryParams = [...$params, $limit, $offset];
@@ -67,7 +71,7 @@ abstract class CrudController extends BaseController
                 'page' => $page,
                 'limit' => $limit,
                 'total' => $total,
-                'pages' => $total === 0 ? 0 : (int) ceil($total / $limit),
+                'pages' => $total === null ? null : ($total === 0 ? 0 : (int) ceil($total / $limit)),
             ],
         ]);
     }

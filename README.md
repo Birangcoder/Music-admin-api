@@ -232,7 +232,9 @@ It does not maintain a separate music database or duplicate the MusicAPI-v2 sche
 
 ## Cloudinary uploads
 
-The Admin API performs signed Cloudinary uploads. The admin panel only sends the selected file to the API; Cloudinary credentials never reach the browser.
+The Admin API performs signed Cloudinary uploads. The admin panel sends the selected file to its small authenticated upload proxy, which forwards the multipart request to the Admin API. Cloudinary credentials and unsigned upload presets are never exposed to browser JavaScript.
+
+New uploads use fixed Media Library folders:
 
 Fixed Media Library folders:
 
@@ -253,3 +255,18 @@ POST /uploads/audio
 ```
 
 Each request uses a multipart field named `file` and returns the Cloudinary `secure_url`. Existing database URLs are not rewritten.
+
+
+## Performance
+
+`GET /artists`, `/albums`, `/genres` support `include_total=0` for fast autocomplete/dropdown queries when the total count is not needed.
+
+For larger databases, run:
+
+```text
+database/performance_indexes.sql
+```
+
+The script checks `information_schema` before adding each index, so existing indexes with the same name are not recreated.
+
+The songs list no longer calculates three relationship-count subqueries for every row because the admin panel does not display those counts. Relationship writes reuse prepared statements inside the transaction.

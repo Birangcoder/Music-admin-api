@@ -76,10 +76,7 @@ final class SongController extends BaseController
                 s.is_active,
                 s.play_count,
                 s.like_count,
-                s.download_count,
-                (SELECT COUNT(*) FROM song_artists sa WHERE sa.song_id=s.id) AS artist_count,
-                (SELECT COUNT(*) FROM song_genres sg WHERE sg.song_id=s.id) AS genre_count,
-                (SELECT COUNT(*) FROM song_albums sal WHERE sal.song_id=s.id) AS album_count
+                s.download_count
              FROM songs s
              WHERE {$where}
              ORDER BY s.id DESC
@@ -350,20 +347,17 @@ final class SongController extends BaseController
             $old->bind_param('i', $songId);
             $old->execute();
 
+            $stmt = $this->db->prepare(
+                'INSERT INTO song_artists(song_id,artist_id,role) VALUES(?,?,?)'
+            );
             foreach ((array) $relationships['artists'] as $item) {
                 $artistId = (int) (is_array($item) ? ($item['id'] ?? 0) : $item);
-                $role = is_array($item) ? (string) ($item['role'] ?? 'Main') : 'Main';
-
-                if ($artistId <= 0) {
-                    continue;
-                }
-
-                $stmt = $this->db->prepare(
-                    'INSERT INTO song_artists(song_id,artist_id,role) VALUES(?,?,?)'
-                );
+                $role = is_array($item) ? trim((string) ($item['role'] ?? 'Main')) : 'Main';
+                if ($artistId <= 0) continue;
                 $stmt->bind_param('iis', $songId, $artistId, $role);
                 $stmt->execute();
             }
+            $stmt->close();
         }
 
         if ($relationships['genres'] !== null) {
@@ -371,19 +365,16 @@ final class SongController extends BaseController
             $old->bind_param('i', $songId);
             $old->execute();
 
+            $stmt = $this->db->prepare(
+                'INSERT INTO song_genres(song_id,genre_id) VALUES(?,?)'
+            );
             foreach ((array) $relationships['genres'] as $item) {
                 $genreId = (int) (is_array($item) ? ($item['id'] ?? 0) : $item);
-
-                if ($genreId <= 0) {
-                    continue;
-                }
-
-                $stmt = $this->db->prepare(
-                    'INSERT INTO song_genres(song_id,genre_id) VALUES(?,?)'
-                );
+                if ($genreId <= 0) continue;
                 $stmt->bind_param('ii', $songId, $genreId);
                 $stmt->execute();
             }
+            $stmt->close();
         }
 
         if ($relationships['albums'] !== null) {
@@ -401,30 +392,24 @@ final class SongController extends BaseController
             $delete->bind_param('i', $songId);
             $delete->execute();
 
+            $stmt = $this->db->prepare(
+                'INSERT INTO song_albums(song_id,album_id,track_number,disc_number)
+                 VALUES(?,?,?,?)'
+            );
             foreach ((array) $relationships['albums'] as $item) {
                 $albumId = (int) ($item['id'] ?? 0);
-
-                if ($albumId <= 0) {
-                    continue;
-                }
+                if ($albumId <= 0) continue;
 
                 $track = array_key_exists('track_number', $item)
                     ? ($item['track_number'] === null ? null : (int) $item['track_number'])
                     : null;
+                $disc = array_key_exists('disc_number', $item) ? (int) $item['disc_number'] : 1;
 
-                $disc = array_key_exists('disc_number', $item)
-                    ? (int) $item['disc_number']
-                    : 1;
-
-                $stmt = $this->db->prepare(
-                    'INSERT INTO song_albums(song_id,album_id,track_number,disc_number)
-                     VALUES(?,?,?,?)'
-                );
                 $stmt->bind_param('iiii', $songId, $albumId, $track, $disc);
                 $stmt->execute();
-
                 $affectedAlbums[] = $albumId;
             }
+            $stmt->close();
 
             foreach (array_unique(array_map('intval', $affectedAlbums)) as $albumId) {
                 $this->refreshAlbumCount($albumId);

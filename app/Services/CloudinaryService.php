@@ -37,8 +37,8 @@ final class CloudinaryService
         $folder = self::FOLDERS[$type];
         $timestamp = time();
 
-        // In Cloudinary Dynamic Folder mode, asset_folder controls the
-        // Media Library location without changing the existing URL/public ID.
+        // Keep both the public ID path and Media Library folder predictable.
+        // This prevents new uploads from ending up in a single preset folder.
         $signParams = [
             'asset_folder' => $folder,
             'timestamp' => $timestamp,
