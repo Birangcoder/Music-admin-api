@@ -12,7 +12,7 @@ if ($environment !== 'production' && file_exists($secretsFile)) {
     require_once $secretsFile;
 }
 
-define('APP_VERSION', '1.1.0');
+define('APP_VERSION', '1.2.0');
 define('APP_NAME', 'MusicAdminAPI');
 define('APP_ENV', $environment);
 define('APP_DEBUG', $environment !== 'production');

@@ -20,7 +20,7 @@ $router->get('/', static function (): void {
     Response::success([
         'name' => 'Music Admin API',
         'status' => 'ok',
-        'version' => '1.0.0',
+        'version' => APP_VERSION,
     ]);
 });
 
